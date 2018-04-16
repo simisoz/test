@@ -25,7 +25,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='ashaval_dag', default_args=default_args,
+    dag_id='spark', default_args=default_args,
     schedule_interval='0 0 * * *'
 )
 

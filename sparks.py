@@ -31,15 +31,15 @@ dag = DAG(
 
 
 t1 = BashOperator(
-    task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark http://filled-echidna-helmet-ch:1323/charts/spark-2.3.0.tgz",
+    task_id="spawn_spark", dag=dag, bash_command="helm install --name spark http://filled-echidna-helmet-ch:1323/charts/spark-2.3.0.tgz",
     executor_config={"KubernetesExecutor": {
-        "image": "lachlanevenson/k8s-helm:latest"}}
+        "image": "foundery/airflow_helm:latest"}}
 )
 
 t2 = BashOperator(
     task_id="process_spark", dag=dag, bash_command="sleep 60 && spark-submit --conf spark.driver.host=$(hostname -i) --master spark://spark-0.spark:7077 /tmp/dags/wordcount.py hdfs://hadoop-0.hadoop:9000/data/README.txt hdfs://hadoop-0.hadoop:9000/data/wordcount || sleep 600",
     executor_config={"KubernetesExecutor": {
-        "image": "airflow/spark:latest"}}
+        "image": "foundery/airflow_spark:latest"}}
 )
 
 

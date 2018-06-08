@@ -22,7 +22,7 @@ import os
 
 default_args = {
     'owner': 'me',
-    'start_date': dt.datetime(2018, 3, 25),
+    'start_date': dt.datetime(2018, 5, 25),
     'retries': 1,
     'retry_delay': dt.timedelta(minutes=5),
 }

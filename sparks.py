@@ -31,17 +31,23 @@ dag = DAG(
 
 
 t1 = BashOperator(
-    task_id="spawn_spark", dag=dag, bash_command="helm install --name spark http://filled-echidna-helmet-ch:1323/charts/spark-2.3.0.tgz",
+    task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark",
+    executor_config={"KubernetesExecutor": {
+        "image": "foundery/airflow_helm:latest"}}
+)
+
+t3 = BashOperator(
+    task_id="delete_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm del --purge spark",
     executor_config={"KubernetesExecutor": {
         "image": "foundery/airflow_helm:latest"}}
 )
 
 t2 = BashOperator(
-    task_id="process_spark", dag=dag, bash_command="sleep 60 && spark-submit --conf spark.driver.host=$(hostname -i) --master spark://spark-0.spark:7077 /tmp/dags/wordcount.py hdfs://hadoop-0.hadoop:9000/data/README.txt hdfs://hadoop-0.hadoop:9000/data/wordcount || sleep 600",
+    task_id="process_spark", dag=dag, bash_command="sleep 30 && helm init --client-only &&  ./bin/spark-submit --class org.apache.spark.examples.SparkPi --master 192.168.99.101:8443 --deploy-mode cluster --executor-memory 1G --num-executors 5 $SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
     executor_config={"KubernetesExecutor": {
         "image": "foundery/airflow_spark:latest"}}
 )
 
 
-t1 >> t2
+t1 >> t2 >> t3
 

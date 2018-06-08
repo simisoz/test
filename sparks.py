@@ -19,7 +19,7 @@ import datetime as dt
 
 default_args = {
     'owner': 'me',
-    'start_date': None,
+    'start_date': dt.datetime(2018, 4, 4),
     'retries': 1,
     'retry_delay': dt.timedelta(minutes=5),
 }

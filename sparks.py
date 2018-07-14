@@ -24,7 +24,7 @@ t1 = BashOperator(
 
 
 t2 = BashOperator(
-    task_id="process_spark", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master https://192.168.39.191:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 $SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
+    task_id="process_spark", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master k8s://https://192.168.39.191:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 $SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
     executor_config={"KubernetesExecutor": {
         "image": "spark23:latest"}}
 )

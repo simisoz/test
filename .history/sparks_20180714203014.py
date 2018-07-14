@@ -22,6 +22,11 @@ t1 = BashOperator(
         "image": "helm:latest"}}
 )
 
+t3 = BashOperator(
+    task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
+    executor_config={"KubernetesExecutor": {
+        "image": "helm:latest"}}
+)
 
 t2 = BashOperator(
     task_id="process_spark", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master https://192.168.39.191:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 $SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
@@ -29,11 +34,6 @@ t2 = BashOperator(
         "image": "spark23:latest"}}
 )
 
-t3 = BashOperator(
-    task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
-    executor_config={"KubernetesExecutor": {
-        "image": "helm:latest"}}
-)
 
-t1 >> t2 >> t3
+t1 >> t2
 

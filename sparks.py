@@ -46,7 +46,7 @@ spawn_spark = BashOperator(
 
 compute_pi = SparkSubmitOperator(
     task_id='compute_pi',
-    conn_id='spark_on_k8s',
+    conn_id='spark_k8s_cluster',
     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar"',
     java_class='org.apache.spark.examples.SparkPi',
     dag=dag,

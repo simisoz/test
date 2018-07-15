@@ -34,7 +34,7 @@ dag = DAG(
 
 
 spawn_spark = BashOperator(
-    task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark",
+    task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark:0.1.14",
     executor_config=executor_config)
 
 # t2 = BashOperator(
@@ -59,4 +59,4 @@ delete_spark = BashOperator(
     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
-spawn_spark >> compute_pi >> delete_spark
+ compute_pi 

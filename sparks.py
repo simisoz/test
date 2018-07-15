@@ -46,8 +46,8 @@ spawn_spark = BashOperator(
 
 compute_pi = SparkSubmitOperator(
     task_id='compute_pi',
-    conn_id='spark_kubernetes',
-    application='local:///$SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar"',
+    conn_id='spark_on_k8s',
+    application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar"',
     java_class='org.apache.spark.examples.SparkPi',
     dag=dag,
     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},

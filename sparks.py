@@ -59,4 +59,4 @@ delete_spark = BashOperator(
     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
- compute_pi 
+compute_pi 

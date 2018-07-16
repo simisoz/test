@@ -2,7 +2,7 @@ import datetime as dt
 from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
-
+from airflow.operators.sensors import 
 default_args = {
     'owner': 'me',
     'start_date': dt.datetime(2018, 6, 8),
@@ -43,6 +43,16 @@ dag = DAG(
 #         "image": "spark23:latest",
 #         "namespace": "airflow-ke"}}
 # )
+sensor = S3KeySensor(
+    task_id='watch_s3_bucket',
+    bucket_key='*.JPEG',
+    wildcard_match=True,
+    bucket_name='image',
+    s3_conn_id='minio',
+    timeout=18*60*60,
+    poke_interval=20,
+    dag=dag)
+
 s3_files = S3ListOperator(
     task_id='list_bucket',
     bucket='images',
@@ -51,8 +61,10 @@ s3_files = S3ListOperator(
     aws_conn_id='minio'
 )
 
+sensor >> s3_files
 
-s3_files
+
+# s3_files
 
 # compute_pi = SparkSubmitOperator(
 #     task_id='computepi',

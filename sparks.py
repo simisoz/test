@@ -23,7 +23,7 @@ submit_config = {
 }
 executor_config = {
     "KubernetesExecutor": {
-    "image": "helm:latest"
+        "image": "helm:latest"
     }
 }
 
@@ -43,20 +43,30 @@ dag = DAG(
 #         "image": "spark23:latest",
 #         "namespace": "airflow-ke"}}
 # )
-
-compute_pi = SparkSubmitOperator(
-    task_id='computepi',
-    conn_id='spark_k8s_cluster',
-    application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
-    java_class='org.apache.spark.examples.WordCount',
-    dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
-    **submit_config
+s3_files = S3ListOperator(
+    task_id='list_bucket',
+    bucket='images',
+    prefix='/',
+    delimiter=',',
+    aws_conn_id='minio'
 )
+
+
+s3_files
+
+# compute_pi = SparkSubmitOperator(
+#     task_id='computepi',
+#     conn_id='spark_k8s_cluster',
+#     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
+#     java_class='org.apache.spark.examples.SparkPi',
+#     dag=dag,
+#     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
+#     **submit_config
+# )
 
 
 # delete_spark = BashOperator(
 #     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
 #     executor_config=executor_config)
 
-compute_pi 
+# compute_pi

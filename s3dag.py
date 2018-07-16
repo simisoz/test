@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2016, 11, 1),
+    'start_date': datetime(2018, 7, 16),
     'email': ['something@here.com'],
     'email_on_failure': False,
     'email_on_retry': False,
@@ -25,7 +25,7 @@ sensor = S3KeySensor(
     bucket_key='*.JPEG',
     wildcard_match=True,
     bucket_name='image',
-    s3_conn_id='minio',
+    s3_conn_id='s3_minio',
     timeout=18*60*60,
     poke_interval=20,
     dag=dag)

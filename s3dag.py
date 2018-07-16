@@ -1,8 +1,8 @@
 from airflow import DAG
-from airflow.operators.sensors import  S3KeySensor
+from airflow.operators.sensors import S3KeySensor
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
-
+os.environ['S3_USE_SIGV4'] = 'True'
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,

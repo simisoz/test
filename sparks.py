@@ -2,7 +2,7 @@ import datetime as dt
 from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.operators.sensors import 
+from airflow.operators.sensors import S3KeySensor
 default_args = {
     'owner': 'me',
     'start_date': dt.datetime(2018, 6, 8),
@@ -61,7 +61,7 @@ s3_files = S3ListOperator(
     aws_conn_id='minio'
 )
 
-sensor >> s3_files
+sensor 
 
 
 # s3_files

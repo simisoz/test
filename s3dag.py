@@ -1,5 +1,6 @@
 from airflow import DAG
-from airflow.operators import SimpleHttpOperator, HttpSensor,   BashOperator, EmailOperator, S3KeySensor
+from airflow.operators.sensors import  S3KeySensor
+from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
 default_args = {
@@ -25,7 +26,7 @@ sensor = S3KeySensor(
     bucket_key='*.JPEG',
     wildcard_match=True,
     bucket_name='image',
-    s3_conn_id='s3_minio',
+    aws_conn_id='s3_minio',
     timeout=18*60*60,
     poke_interval=20,
     dag=dag)

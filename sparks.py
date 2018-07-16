@@ -48,7 +48,7 @@ compute_pi = SparkSubmitOperator(
     task_id='computepi',
     conn_id='spark_k8s_cluster',
     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
-    java_class='org.apache.spark.examples.SparkPi',
+    java_class='org.apache.spark.examples.WordCount',
     dag=dag,
     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
     **submit_config

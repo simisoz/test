@@ -22,7 +22,7 @@ import os
 
 default_args = {
     'owner': 'me',
-    'start_date': dt.datetime(2018, 5, 25),
+    'start_date': dt.datetime(2018, 7, 10),
     'retries': 1,
     'retry_delay': dt.timedelta(minutes=5),
 }
@@ -34,7 +34,7 @@ dag = DAG(
 
 
 def print_stuff():
-    print("stuff!")
+    print("This is so cool!")
 
 
 def use_zip_binary():
@@ -50,13 +50,13 @@ start_task = PythonOperator(
 # But you can if you want to
 one_task = PythonOperator(
     task_id="one_task", python_callable=print_stuff, dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "foundery/airflow:latest"}}
+    executor_config={"KubernetesExecutor": {"image": "airflow:latest"}}
 )
 
 # Use the zip binary, which is only found in this special docker image
 two_task = PythonOperator(
     task_id="two_task", python_callable=use_zip_binary, dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "foundery/airflow:latest"}}
+    executor_config={"KubernetesExecutor": {"image": "airflow:latest"}}
 )
 
 # Limit resources on this operator/task

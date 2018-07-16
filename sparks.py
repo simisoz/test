@@ -2,7 +2,9 @@ import datetime as dt
 from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.operators.sensors import S3KeySensor
+from airflow.operators.slack_operator import SlackAPIPostOperator
+from airflow.operators.python_operator import PythonOperator
+# from kubernetes import client, config
 
 default_args = {
     'owner': 'me',
@@ -10,18 +12,7 @@ default_args = {
     'retries': 1,
     'retry_delay': dt.timedelta(minutes=5),
 }
-submit_config = {
-    'conf': {
-        'spark.kubernetes.container.image': 'spark23:latest'
-    },
-    'total_executor_cores': 4,
-    'executor_cores': 1,
-    'executor_memory': '1g',
-    'name': '{{ task_instance.task_id }}',
-    'num_executors': 4,
-    'verbose': True,
-    'driver_memory': '1g',
-}
+
 executor_config = {
     "KubernetesExecutor": {
         "image": "helm:latest"
@@ -34,86 +25,39 @@ dag = DAG(
 )
 
 
-# spawn_spark = BashOperator(
-#     task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark:0.1.14",
-#     executor_config=executor_config)
-
-# t2 = BashOperator(
-#     task_id="process_spark", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master k8s://https://192.168.39.191:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 --conf spark.kubernetes.container.image=spark23:latest  local:///$SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
-#     executor_config = {"KubernetesExecutor": {
-#         "image": "spark23:latest",
-#         "namespace": "airflow-ke"}}
-# )
-# sensor = S3KeySensor(
-#     task_id='watch_s3_bucket',
-#     bucket_key='*.JPEG',
-#     wildcard_match=True,
-#     bucket_name='image',
-#     s3_conn_id='minio',
-#     timeout=18*60*60,
-#     poke_interval=20,
-#     dag=dag)
-
-# # s3_files = S3ListOperator(
-# #     task_id='list_bucket',
-# #     bucket='images',
-# #     prefix='/',
-# #     delimiter=',',
-# #     aws_conn_id='minio'
-# # )
-
-# sensor
+def spark_k8sservices(**context):
+    api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
+    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
 
 
-# s3_files
+start_notification = SlackAPIPostOperator(
+    dag=dag, task_id='start_notification',
+    token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
+    channel="#airflow", text='Creating a spark cluster!',
+    icon_url='https://airflow.apache.org/_images/pin_large.png')
 
-compute_pi = SparkSubmitOperator(
-    task_id='computepi',
-    conn_id='spark_k8s_cluster',
-    application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
-    java_class='org.apache.spark.examples.SparkPi',
+spawn_spark = BashOperator(
+    task_id="spawn_spark",
     dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
-    **submit_config
-)
+    bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
+    executor_config=executor_config)
+
+spark_k8sservices = PythonOperator(
+    task_id='spark_k8sservices',
+    dag=dag,
+    python_callable=spark_k8sservices,
+    executor_config=executor_config)
+
+send_connections = SlackAPIPostOperator(
+    dag=dag, task_id='send_connections',
+    provide_context=True,
+    token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
+    channel="#airflow", text="{{ ti.xcom_pull(task_ids='spark_k8sservices') }}",
+    icon_url='https://airflow.apache.org/_images/pin_large.png')
 
 
-# delete_spark = BashOperator(
-#     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
-#     executor_config=executor_config)
+delete_spark = BashOperator(
+    task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
+    executor_config=executor_config)
 
-compute_pi
-
-# from airflow import DAG
-# from airflow.operators import SimpleHttpOperator, HttpSensor,   BashOperator, EmailOperator, S3KeySensor
-# from datetime import datetime, timedelta
-
-# default_args = {
-#     'owner': 'airflow',
-#     'depends_on_past': False,
-#     'start_date': datetime(2016, 11, 1),
-#     'email': ['something@here.com'],
-#     'email_on_failure': False,
-#     'email_on_retry': False,
-#     'retries': 5,
-#     'retry_delay': timedelta(minutes=5)
-# }
-
-# dag = DAG('s3_dag_test', default_args=default_args, schedule_interval='@once')
-
-# t1 = BashOperator(
-#     task_id='bash_test',
-#     bash_command='echo "hello, it should work" > s3_conn_test.txt',
-#     dag=dag)
-
-# sensor = S3KeySensor(
-#     task_id='watch_s3_bucket',
-#     bucket_key='*.JPEG',
-#     wildcard_match=True,
-#     bucket_name='image',
-#     s3_conn_id='minio',
-#     timeout=18*60*60,
-#     poke_interval=20,
-#     dag=dag)
-
-# t1 >> sensor
+start_notification >> spawn_spark >> spark_k8sservices >> send_connections >> delete_spark

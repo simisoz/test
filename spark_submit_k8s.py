@@ -1,18 +1,13 @@
+import datetime as dt
 from airflow import DAG
-from airflow.operators.sensors import S3KeySensor
-from airflow.operators.bash_operator import BashOperator
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
-from datetime import datetime, timedelta
+from airflow.operators.bash_operator import BashOperator
 
 default_args = {
-    'owner': 'simiso',
-    'depends_on_past': False,
-    'start_date': datetime(2018, 7, 16),
-    'email': ['simiso.zwane@rmb.co.za'],
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 5,
-    'retry_delay': timedelta(minutes=5)
+    'owner': 'me',
+    'start_date': dt.datetime(2018, 6, 8),
+    'retries': 1,
+    'retry_delay': dt.timedelta(minutes=5),
 }
 submit_config = {
     'conf': {
@@ -26,22 +21,35 @@ submit_config = {
     'verbose': True,
     'driver_memory': '1g',
 }
+executor_config = {
+    "KubernetesExecutor": {
+    "image": "helm:latest"
+    }
+}
 
-dag = DAG('spark_submit', default_args=default_args, schedule_interval='@once')
+dag = DAG(
+    dag_id='spark', default_args=default_args,
+    schedule_interval='@once'
+)
 
-start = BashOperator(
-    task_id='start',
-    bash_command='echo "hello, it should work" > textfile.txt',
-    dag=dag)
+
+# spawn_spark = BashOperator(
+#     task_id="spawn_spark", dag=dag, bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark:0.1.14",
+#     executor_config=executor_config)
+
+# t2 = BashOperator(
+#     task_id="process_spark", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master k8s://https://192.168.39.191:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 --conf spark.kubernetes.container.image=spark23:latest  local:///$SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
+#     executor_config = {"KubernetesExecutor": {
+#         "image": "spark23:latest",
+#         "namespace": "airflow-ke"}}
+# )
 
 compute_pi = SparkSubmitOperator(
     task_id='computepi',
     conn_id='spark_k8s_cluster',
     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
-    java_class='org.apache.spark.examples.SparkPi',
+    java_class='org.apache.spark.examples.WordCount',
     dag=dag,
     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
     **submit_config
 )
-
-start >> compute_pi

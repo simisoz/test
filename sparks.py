@@ -2,7 +2,7 @@ import datetime as dt
 from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
-
+from kubernetes import client, config
 default_args = {
     'owner': 'me',
     'start_date': dt.datetime(2018, 6, 8),
@@ -56,10 +56,19 @@ spawn_spark = BashOperator(
 #     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
 #     **submit_config
 # )
+def spark_k8sservices(**context):
+    api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
+    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
+
+spark_k8sservices = PythonOperator(
+    task_id='spark_k8sservices',
+    dag=dag,
+    python_callable=spark_k8sservices,
+    executor_config=executor_config)
 
 
 delete_spark = BashOperator(
     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
-spawn_spark >>  delete_spark
+spawn_spark >> spark_k8sservices >> delete_spark

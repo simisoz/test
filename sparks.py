@@ -4,6 +4,10 @@ from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from kubernetes import client, config
+from slackclient import SlackClient
+
+sc = SlackClient("xoxp-108470454706-107763802528-401211706214-325a50a17937a89b811b30ffe521b240")
+
 default_args = {
     'owner': 'me',
     'start_date': dt.datetime(2018, 6, 8),
@@ -51,6 +55,7 @@ spawn_spark = BashOperator(
 def spark_k8sservices(**context):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
     api_response = api_instance.list_namespaced_service(namespace="spark", watch=False)
+    all_services = [ sc.api_call("chat.postMessage",channel="#airflow", text=str("Load Balancer Port",svc.spec.ports[0].node_port)) for svc in api_response.items]
     return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_response.items]
 
 spark_k8sservices = PythonOperator(

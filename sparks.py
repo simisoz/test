@@ -4,7 +4,7 @@ from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from kubernetes import client, config
-from slackclient import SlackClient
+# from slackclient import SlackClient
 
 # sc = SlackClient("xoxp-108470454706-107763802528-401211706214-325a50a17937a89b811b30ffe521b240")
 

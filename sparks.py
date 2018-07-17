@@ -29,14 +29,14 @@ def spark_k8sservices(**context):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
     return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
 
-start_notification = SlackAPIPostOperator(
-    task_id="slack_confirmation",
-    channel="#airflow",
-    username="airflow",
-    token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
-    text="Hello there",
-    dag=dag,
-)
+# start_notification = SlackAPIPostOperator(
+#     task_id="slack_confirmation",
+#     channel="#airflow",
+#     username="airflow",
+#     token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
+#     text="Hello there",
+#     dag=dag,
+# )
 
 spawn_spark = BashOperator(
     task_id="spawn_spark",
@@ -50,17 +50,17 @@ spark_k8sservices = PythonOperator(
     python_callable=spark_k8sservices,
     executor_config=executor_config)
 
-send_connections = SlackAPIPostOperator(
-    task_id="send_connections",
-    channel="#airflow",
-    username="airflow",
-    token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
-    text="{{ ti.xcom_pull(task_ids='spark_k8sservices') }}",
-    dag=dag,
-)
+# send_connections = SlackAPIPostOperator(
+#     task_id="send_connections",
+#     channel="#airflow",
+#     username="airflow",
+#     token="xoxp-108470454706-107763802528-394935179685-7cafc5ed8dab3748ce2cc815c49e8cb5",
+#     text="{{ ti.xcom_pull(task_ids='spark_k8sservices') }}",
+#     dag=dag,
+# )
 
 delete_spark = BashOperator(
     task_id="delete_spark", dag=dag, bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
-start_notification >> spawn_spark >> spark_k8sservices >> send_connections >> delete_spark
+spawn_spark >> spark_k8sservices >>  delete_spark

@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
-#from kubernetes import client, config
+from kubernetes import client, config
 default_args = {
     'owner': 'me',
     'start_date': dt.datetime(2018, 6, 8),

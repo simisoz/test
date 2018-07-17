@@ -59,7 +59,8 @@ spawn_spark = BashOperator(
 # )
 def spark_k8sservices(**context):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
-    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
+    api_response = api_instance.list_namespaced_service(namespace="spark", watch=False)
+    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_response.items]
 
 spark_k8sservices = PythonOperator(
     task_id='spark_k8sservices',

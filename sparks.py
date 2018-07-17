@@ -8,7 +8,7 @@ from kubernetes import client, config
 
 default_args = {
     'owner': 'me',
-    'start_date': dt.datetime(2018, 6, 8),
+    'start_date': dt.datetime(2018, 7, 8),
     'retries': 1,
     'retry_delay': dt.timedelta(minutes=5),
 }
@@ -25,9 +25,9 @@ dag = DAG(
 )
 
 
-def spark_k8sservices(**context):
-    api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
-    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
+# def spark_k8sservices(**context):
+#     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
+#     return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_instance.items]
 
 # start_notification = SlackAPIPostOperator(
 #     task_id="slack_confirmation",
@@ -44,11 +44,11 @@ spawn_spark = BashOperator(
     bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
     executor_config=executor_config)
 
-spark_k8sservices = PythonOperator(
-    task_id='spark_k8sservices',
-    dag=dag,
-    python_callable=spark_k8sservices,
-    executor_config=executor_config)
+# spark_k8sservices = PythonOperator(
+#     task_id='spark_k8sservices',
+#     dag=dag,
+#     python_callable=spark_k8sservices,
+#     executor_config=executor_config)
 
 # send_connections = SlackAPIPostOperator(
 #     task_id="send_connections",

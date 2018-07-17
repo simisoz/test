@@ -48,15 +48,6 @@ spawn_spark = BashOperator(
 #         "namespace": "airflow-ke"}}
 # )
 
-# compute_pi = SparkSubmitOperator(
-#     task_id='compute_pi',
-#     conn_id='spark_k8s_cluster',
-#     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar"',
-#     java_class='org.apache.spark.examples.SparkPi',
-#     dag=dag,
-#     executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
-#     **submit_config
-# )
 def spark_k8sservices(**context):
     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
     api_response = api_instance.list_namespaced_service(namespace="spark", watch=False)

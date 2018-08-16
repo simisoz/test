@@ -4,9 +4,6 @@ from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from kubernetes import client, config
-# from slackclient import SlackClient
-
-# sc = SlackClient("xoxp-108470454706-107763802528-401211706214-325a50a17937a89b811b30ffe521b240")
 
 default_args = {
     'owner': 'me',
@@ -68,7 +65,7 @@ spark_k8sservices = PythonOperator(
 delete_spark = BashOperator(
     task_id="delete_spark", 
     dag=dag, 
-    bash_command="helm init --client-only && helm delete --purge spark",
+    bash_command="sleep 300 ;helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
 spawn_spark >> spark_k8sservices >> delete_spark

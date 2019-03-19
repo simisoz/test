@@ -38,7 +38,7 @@ dag = DAG(
 spawn_spark = BashOperator(
     task_id="spawn_spark", 
     dag=dag, 
-    bash_command="helm init --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
+    bash_command="helm init --service-account=tiller --upgrade --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
     executor_config=executor_config
     )
 

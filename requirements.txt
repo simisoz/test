@@ -1,2 +1,5 @@
 slackclient
 snakebite
+botocore>=1.12
+boto3>=1.9
+apache-airflow[s3]>=1.10

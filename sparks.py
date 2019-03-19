@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
-from kubernetes import client, config
+# from kubernetes import client, config
 
 default_args = {
     'owner': 'me',
@@ -38,7 +38,7 @@ dag = DAG(
 spawn_spark = BashOperator(
     task_id="spawn_spark", 
     dag=dag, 
-    bash_command="sleep 30 && helm init --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
+    bash_command="helm init --client-only && helm install --name spark stable/spark --version=0.1.13 --namespace=spark",
     executor_config=executor_config
     )
 
@@ -49,23 +49,23 @@ spawn_spark = BashOperator(
 #         "namespace": "airflow-ke"}}
 # )
 
-def spark_k8sservices(**context):
-    api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
-    api_response = api_instance.list_namespaced_service(namespace="spark", watch=False)
-    # all_services = [ sc.api_call("chat.postMessage",channel="#airflow", text=str("Load Balancer Port",svc.spec.ports[0].node_port)) for svc in api_response.items]
-    return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_response.items]
+# def spark_k8sservices(**context):
+#     api_instance = client.CoreV1Api(client.ApiClient(config.load_incluster_config()))
+#     api_response = api_instance.list_namespaced_service(namespace="spark", watch=False)
+#     # all_services = [ sc.api_call("chat.postMessage",channel="#airflow", text=str("Load Balancer Port",svc.spec.ports[0].node_port)) for svc in api_response.items]
+#     return [(svc.spec.selector, svc.spec.ports[0].node_port) for svc in api_response.items]
 
-spark_k8sservices = PythonOperator(
-    task_id='spark_k8sservices',
-    dag=dag,
-    python_callable=spark_k8sservices,
-    executor_config=executor_config)
+# spark_k8sservices = PythonOperator(
+#     task_id='spark_k8sservices',
+#     dag=dag,
+#     python_callable=spark_k8sservices,
+#     executor_config=executor_config)
 
 
 delete_spark = BashOperator(
     task_id="delete_spark", 
     dag=dag, 
-    bash_command="sleep 300 ;helm init --client-only && helm delete --purge spark",
+    bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
-spawn_spark >> spark_k8sservices >> delete_spark
+spawn_spark >> delete_spark

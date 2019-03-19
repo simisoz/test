@@ -68,4 +68,4 @@ delete_spark = BashOperator(
     bash_command="helm init --client-only && helm delete --purge spark",
     executor_config=executor_config)
 
-spawn_spark >> delete_spark
+spawn_spark 

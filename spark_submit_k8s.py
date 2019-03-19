@@ -11,13 +11,13 @@ default_args = {
 }
 submit_config = {
     'conf': {
-        'spark.kubernetes.container.image': 'spark23:latest'
+        'spark.kubernetes.container.image': 'spark:latest'
     },
-    'total_executor_cores': 4,
+    'total_executor_cores': 2,
     'executor_cores': 1,
     'executor_memory': '1g',
     'name': '{{ task_instance.task_id }}',
-    'num_executors': 4,
+    'num_executors': 2,
     'verbose': True,
     'driver_memory': '1g',
 }
@@ -33,11 +33,11 @@ dag = DAG(
 )
 compute_pi = SparkSubmitOperator(
     task_id='computepi',
-    conn_id='spark_k8s_cluster',
+    conn_id='spark_k8s_connection',
     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
     java_class='org.apache.spark.examples.WordCount',
     dag=dag,
-    executor_config={"KubernetesExecutor": {"image": "spark23:latest"}},
+    executor_config={"KubernetesExecutor": {"image": "spark:latest"}},
     **submit_config
 )
 

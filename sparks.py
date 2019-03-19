@@ -13,13 +13,13 @@ default_args = {
 }
 submit_config = {
     'conf': {
-        'spark.kubernetes.container.image': 'spark23:latest'
+        'spark.kubernetes.container.image': 'spark:latest'
     },
-    'total_executor_cores': 4,
+    'total_executor_cores': 2,
     'executor_cores': 1,
     'executor_memory': '1g',
     'name': '{{ task_instance.task_id }}',
-    'num_executors': 4,
+    'num_executors': 2,
     'verbose': True,
     'driver_memory': '1g',
 }

@@ -31,8 +31,8 @@ dag = DAG(
     dag_id='spark_submit', default_args=default_args,
     schedule_interval='@once'
 )
-compute_pi = SparkSubmitOperator(
-    task_id='computepi',
+submit_computepi_on_k8s_submitoperator = SparkSubmitOperator(
+    task_id='submit_computepi_on_k8s_submitoperator',
     conn_id='spark_k8s_connection',
     application='local:///usr/local/spark/examples/jars/spark-example_2.11-2.3.0.jar',
     java_class='org.apache.spark.examples.WordCount',
@@ -41,4 +41,10 @@ compute_pi = SparkSubmitOperator(
     **submit_config
 )
 
-compute_pi
+submit_computepi_on_k8s_bash = BashOperator(
+    task_id="submit_computepi_on_k8s_bash", dag=dag, bash_command="spark-submit --class org.apache.spark.examples.SparkPi --master k8s://https://192.168.39.69:8443 --deploy-mode cluster --executor-memory 1G --num-executors 3 --conf spark.kubernetes.container.image=spark:latest  local:///$SPARK_HOME/examples/jars/spark-example_2.11-2.3.0.jar",
+    executor_config = {"KubernetesExecutor": {
+        "image": "spark:latest",
+        "namespace": "airflow"}}
+)
+submit_computepi_on_k8s_bash >> submit_computepi_on_k8s_submitoperator
